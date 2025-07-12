@@ -5,7 +5,7 @@ import { API_BASE_URL } from './BaseUrl'
 import type {UseMutationResult} from '@tanstack/react-query';
 import type { GlobalDataType, LoginPayload, LoginResponse } from '@/Types/interface'
 import { UserRole } from '@/Types/interface'
-import { authActions } from '../app/store'
+import useAuthStore from '../store/authStore'
 
 const loginFn = async (payload: LoginPayload): Promise<LoginResponse> => {
   const response = await axios.post<LoginResponse>(
@@ -30,24 +30,26 @@ export const useLogin = (): UseMutationResult<
       toast.success(`Welcome, ${data.user?.email || 'User'}!`)
       
       // Transform backend response to frontend format
-      const authData: GlobalDataType = {
-        isVerified: true,
-        tokens: {
+      const authStore = useAuthStore.getState()
+      authStore.login(
+        {
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
         },
-        user: {
-          id: data.user?.id || '',
+        {
+          user_id: data.user?.id?.toString() || '',
           email: data.user?.email || '',
-          role: data.user?.role || UserRole.PATIENT,
-        },
-      }
-      authActions.saveUser(authData)
+          role: data.user?.role as any || 'patient',
+        }
+      )
       
       // Also save to localStorage for backward compatibility
-      localStorage.setItem('auth', JSON.stringify(authData.tokens))
-      localStorage.setItem('accesstoken', authData.tokens.accessToken)
-      localStorage.setItem('refreshToken', authData.tokens.refreshToken)
+      localStorage.setItem('auth', JSON.stringify({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      }))
+      localStorage.setItem('accesstoken', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
     },
     onError: (error: any) => {
       toast.error(

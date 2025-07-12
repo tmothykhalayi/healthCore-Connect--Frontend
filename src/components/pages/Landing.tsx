@@ -2,13 +2,20 @@ import { useState } from "react";
 import { FaDna, FaLaptopMedical, FaStethoscope } from "react-icons/fa";
 import { IoArrowForward, IoClose } from "react-icons/io5";
 import { useRouter } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getDoctors } from "@/api/doctor";
 
 import faqData from "../data/faqData";
 import Contact from "./Contact";
-import doctorsData from "../data/doctorsData";
 
 const Landing = () => {
   const router = useRouter();
+  
+  // Fetch real doctors data from backend
+  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
+    queryKey: ['doctors'],
+    queryFn: getDoctors,
+  });
   
   // FAQ Section state handling
   const [displayFAQ, setDisplayFAQ] = useState(0);
@@ -198,20 +205,33 @@ const Landing = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {doctorsData.map((doctor) => (
-            <div
-              key={doctor.id}
-              className="p-4 flex flex-col gap-y-2 bg-purple-100 text-center text-purple-900 rounded-2xl"
-            >
-              <img
-                src={doctor.url}
-                alt="Doctor"
-                className="w-full h-64 object-cover object-top rounded-2xl"
-              />
-              <h3 className="text-xl font-bold">Dr. Sudeshna Sinha</h3>
-              <p className="mb-4">MBBS, MD (Rheumatologist)</p>
+          {doctorsLoading ? (
+            <div className="col-span-full text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="mt-2 text-purple-600">Loading doctors...</p>
             </div>
-          ))}
+          ) : doctorsData?.length ? (
+            doctorsData.map((doctor) => (
+              <div
+                key={doctor.id}
+                className="p-4 flex flex-col gap-y-2 bg-purple-100 text-center text-purple-900 rounded-2xl"
+              >
+                <img
+                  src={doctor.user?.profileImage || "/assets/images/doctors/doctor-1.jpg"}
+                  alt={`Dr. ${doctor.user?.firstName} ${doctor.user?.lastName}`}
+                  className="w-full h-64 object-cover object-top rounded-2xl"
+                />
+                <h3 className="text-xl font-bold">
+                  Dr. {doctor.user?.firstName} {doctor.user?.lastName}
+                </h3>
+                <p className="mb-4">{doctor.specialization}</p>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8">
+              <p className="text-purple-600">No doctors available at the moment.</p>
+            </div>
+          )}
         </div>
       </section>
 

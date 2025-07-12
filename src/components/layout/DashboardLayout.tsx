@@ -13,9 +13,18 @@ import {
   Menu,
   X
 } from 'lucide-react'
+import useAuthStore from '../../store/authStore'
+import { useRouter } from '@tanstack/react-router'
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const logout = useAuthStore(state => state.logout)
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.navigate({ to: '/' })
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: User, current: true },
@@ -59,7 +68,7 @@ const DashboardLayout = () => {
             ))}
           </nav>
           <div className="border-t border-gray-200 p-4">
-            <button className="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+            <button onClick={handleLogout} className="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
               <LogOut className="mr-3 h-5 w-5" />
               Logout
             </button>
@@ -90,7 +99,7 @@ const DashboardLayout = () => {
             ))}
           </nav>
           <div className="border-t border-gray-200 p-4">
-            <button className="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+            <button onClick={handleLogout} className="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
               <LogOut className="mr-3 h-5 w-5" />
               Logout
             </button>

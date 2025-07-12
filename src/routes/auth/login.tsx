@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useLogin } from '@/api/loginapi'
 import useAuthStore from '@/store/authStore'
+import { UserRole } from '@/Types/interface'
 
 export const Route = createFileRoute('/auth/login')({
   component: RouteComponent,
@@ -61,11 +62,9 @@ function RouteComponent() {
               refreshToken: res.refreshToken,
             },
             {
-              user_id: res.user.id.toString(),
-              email: res.user.email,
-              role: res.user.role,
-              firstName: res.user.firstName,
-              lastName: res.user.lastName,
+              user_id: res.user.id?.toString() || '',
+              email: res.user.email || '',
+              role: res.user.role as any || 'patient',
             }
           )
         }

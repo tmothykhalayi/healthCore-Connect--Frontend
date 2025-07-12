@@ -10,6 +10,10 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLogin } from '@/api/loginapi'
+import { useRouter } from '@tanstack/react-router'
+import { toast } from 'sonner'
+import useAuthStore from '@/store/authStore'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -27,6 +31,9 @@ const Login = () => {
   })
   const [errors, setErrors] = useState<Partial<FormData>>({})
   const [isLoading, setIsLoading] = useState(false)
+  
+  const login = useLogin()
+  const router = useRouter()
 
   const validateField = (name: keyof FormData, value: string) => {
     try {
@@ -77,19 +84,91 @@ const Login = () => {
     }
 
     try {
-      // Simulate login API call
+      const result = loginSchema.safeParse(formData)
+      
+      if (!result.success) {
+        console.error('Validation failed:', result.error.issues)
+        return
+      }
+
       console.log('Attempting login with:', {
-        email: formData.email,
+        email: result.data.email,
         password: '[HIDDEN]',
       })
       
-      // For now, just show success message
-      alert('Login successful! (This is a demo - no actual authentication)')
+      const res = await login.mutateAsync(result.data)
+      toast.success('Login successful!')
+      console.log('Login response:', res)
+      const userRole = res.user?.role
+
+      // Store auth data in the store
+      if (res.accessToken && res.refreshToken && res.user) {
+        useAuthStore.getState().login(
+          {
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+          },
+          {
+            user_id: res.user.id?.toString() || '',
+            email: res.user.email || '',
+            role: res.user.role as any || 'patient',
+          }
+        )
+      }
+
+      // Route based on user role
+      switch (userRole) {
+        case 'admin':
+          router.navigate({ to: '/admin' })
+          break
+        case 'doctor':
+          router.navigate({ to: '/doctors' })
+          break
+        case 'patient':
+          router.navigate({ to: '/patients' })
+          break
+        case 'pharmacist':
+          router.navigate({ to: '/pharmacist' })
+          break
+        default:
+          console.warn('Unknown user role:', userRole)
+          toast.error('User role not found. Please contact support.')
+          router.navigate({ to: '/' })
+      }
+      
       setFormData({ email: '', password: '' })
       setErrors({})
       
-    } catch (error) {
-      alert('Login failed. Please try again.')
+    } catch (error: any) {
+      let errorMessage = 'Login failed. Please try again.'
+
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      if (
+        errorMessage.toLowerCase().includes('not found') ||
+        errorMessage.toLowerCase().includes('no account found')
+      ) {
+        toast.error(
+          'Account not found. Please check your email or create a new account.',
+        )
+      } else if (
+        errorMessage.toLowerCase().includes('invalid') ||
+        errorMessage.toLowerCase().includes('password')
+      ) {
+        toast.error(
+          'Invalid credentials. Please check your email and password.',
+        )
+      } else if (
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('fetch')
+      ) {
+        toast.error(
+          'Network error. Please check your internet connection and try again.',
+        )
+      } else {
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }
