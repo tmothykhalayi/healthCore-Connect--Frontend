@@ -2,20 +2,13 @@ import { useState } from "react";
 import { FaDna, FaLaptopMedical, FaStethoscope } from "react-icons/fa";
 import { IoArrowForward, IoClose } from "react-icons/io5";
 import { useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { getDoctors } from "@/api/doctor";
 
 import faqData from "../data/faqData";
+import doctorsData from "../data/doctorsData";
 import Contact from "./Contact";
 
 const Landing = () => {
   const router = useRouter();
-  
-  // Fetch real doctors data from backend
-  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
-    queryKey: ['doctors'],
-    queryFn: getDoctors,
-  });
   
   // FAQ Section state handling
   const [displayFAQ, setDisplayFAQ] = useState(0);
@@ -69,23 +62,22 @@ const Landing = () => {
       </section>
 
       {/* "Core Values" Section (fields of study) */}
-      <section id="about-section" className="py-16 px-4 text-purple-900 lg:p-16">
-        <h2 className="text-3xl font-semibold mb-2">
-          Our{" "}
-          <span className="font-playfair-display italic text-purple-400">
-            Core
-          </span>{" "}
-          Values
-        </h2>
+      <section className="py-8 px-4 text-purple-900 lg:px-16 lg:py-24">
+        <div className="flex flex-col items-center gap-y-4 mb-8 md:flex-row">
+          <h2 className="text-4xl font-semibold mr-auto md:basis-1/3 md:text-5xl">
+            Our{" "}
+            <span className="font-playfair-display text-purple-400 italic">
+              Services
+            </span>
+          </h2>
 
-        <p className="mb-12">
-          We are dedicated to advancing healthcare through innovation,
-          collaboration, and a commitment to excellence in every aspect of our
-          work. Our core values guide us in providing exceptional care and
-          support to our patients and communities.
-        </p>
+          <p className="w-fit md:basis-1/3">
+            We offer comprehensive healthcare services designed to meet the diverse
+            needs of our patients, from preventive care to specialized treatments.
+          </p>
+        </div>
 
-        <div className="flex flex-wrap justify-around gap-y-8 [&>*]:rounded-3xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="max-w-80 p-8 flex flex-col gap-y-4 bg-emerald-100">
             <div className="w-fit p-4 text-3xl bg-emerald-200 rounded-full">
               <FaDna />
@@ -205,33 +197,20 @@ const Landing = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {doctorsLoading ? (
-            <div className="col-span-full text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="mt-2 text-purple-600">Loading doctors...</p>
+          {doctorsData.map((doctor) => (
+            <div
+              key={doctor.id}
+              className="p-4 flex flex-col gap-y-2 bg-purple-100 text-center text-purple-900 rounded-2xl"
+            >
+              <img
+                src={doctor.url}
+                alt="Doctor"
+                className="w-full h-64 object-cover object-top rounded-2xl"
+              />
+              <h3 className="text-xl font-bold">Dr. Sudeshna Sinha</h3>
+              <p className="mb-4">MBBS, MD (Rheumatologist)</p>
             </div>
-          ) : doctorsData?.length ? (
-            doctorsData.map((doctor) => (
-              <div
-                key={doctor.id}
-                className="p-4 flex flex-col gap-y-2 bg-purple-100 text-center text-purple-900 rounded-2xl"
-              >
-                <img
-                  src={doctor.user?.profileImage || "/assets/images/doctors/doctor-1.jpg"}
-                  alt={`Dr. ${doctor.user?.firstName} ${doctor.user?.lastName}`}
-                  className="w-full h-64 object-cover object-top rounded-2xl"
-                />
-                <h3 className="text-xl font-bold">
-                  Dr. {doctor.user?.firstName} {doctor.user?.lastName}
-                </h3>
-                <p className="mb-4">{doctor.specialization}</p>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-purple-600">No doctors available at the moment.</p>
-            </div>
-          )}
+          ))}
         </div>
       </section>
 

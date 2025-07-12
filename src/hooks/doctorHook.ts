@@ -3,11 +3,26 @@ import { getDoctors, getDoctor, createDoctor, updateDoctor, deleteDoctor } from 
 import type { Doctor, CreateDoctorDto, UpdateDoctorDto } from '@/Types/interface';
 
 export function useGetDoctors() {
-  return useQuery({ queryKey: ['doctors'], queryFn: getDoctors });
+  return useQuery({ 
+    queryKey: ['doctors'], 
+    queryFn: getDoctors,
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
 }
 
 export function useGetDoctor(doctorId: number) {
-  return useQuery({ queryKey: ['doctor', doctorId], queryFn: () => getDoctor(doctorId), enabled: !!doctorId });
+  return useQuery({ 
+    queryKey: ['doctor', doctorId], 
+    queryFn: () => getDoctor(doctorId), 
+    enabled: !!doctorId,
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
 }
 
 export function useCreateDoctor() {
